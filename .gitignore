@@ -1,0 +1,12 @@
+node_modules/
+dist/
+venv/
+__pycache__/
+*.pyc
+.env
+backend/uploads/*
+!backend/uploads/sample_aws_invoice.pdf
+uploads/*
+!uploads/sample_aws_invoice.pdf
+.DS_Store
+*.log
