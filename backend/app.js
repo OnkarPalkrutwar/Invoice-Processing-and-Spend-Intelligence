@@ -72,11 +72,27 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 
-// API Health Check
-app.get('/api/health', (req, res) => {
+// API Health Check with live OCR connectivity probe
+app.get('/api/health', async (req, res) => {
+  let ocrStatus = 'unknown';
+  let ocrError = null;
+  try {
+    const axios = require('axios');
+    const ocrProbe = await axios.get(`${env.ocrServiceUrl}/health`, { timeout: 6000 });
+    ocrStatus = ocrProbe.data?.status || 'operational';
+  } catch (err) {
+    ocrStatus = 'unreachable';
+    ocrError = err.message;
+  }
+
   res.status(200).json({
     success: true,
     message: 'InvoScan Invoice Processing and Spend Intelligence API is operational.',
+    ocrService: {
+      configuredUrl: env.ocrServiceUrl,
+      status: ocrStatus,
+      error: ocrError,
+    },
     timestamp: new Date().toISOString(),
   });
 });

@@ -31,7 +31,7 @@ class OcrService {
         headers: {
           ...form.getHeaders(),
         },
-        timeout: 45000, // 45 seconds timeout for OCR processing
+        timeout: 75000, // 75 seconds timeout to accommodate potential cold start on free hosting
       });
 
       if (response.data && response.data.success) {
@@ -49,7 +49,10 @@ class OcrService {
         };
       }
     } catch (error) {
-      console.warn(`[OCR Service Warning] Python OCR service unavailable or returned error: ${error.message}`);
+      console.error(`[OCR Service Error] Calling ${env.ocrServiceUrl}/extract failed:`, error.message);
+      if (error.response) {
+        console.error(`[OCR Service Error] Status: ${error.response.status}, Data:`, error.response.data);
+      }
       return {
         success: false,
         isServiceDown: true,

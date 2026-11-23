@@ -364,17 +364,37 @@ export const InvoiceUpload = () => {
       {createdInvoiceId && (
         <div className="space-y-6">
           {/* OCR Confidence Header */}
-          <div className="card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-l-4 border-l-emerald-600">
+          <div
+            className={`card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-l-4 ${
+              ocrResult?.ocrSuccess === false
+                ? 'border-l-amber-500 bg-amber-50/40'
+                : 'border-l-emerald-600'
+            }`}
+          >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200">
-                <CheckCircle2 className="w-4 h-4" />
+              <div
+                className={`p-2 rounded-lg border ${
+                  ocrResult?.ocrSuccess === false
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                }`}
+              >
+                {ocrResult?.ocrSuccess === false ? (
+                  <AlertCircle className="w-4 h-4" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-900">
-                  Document Extracted Successfully
+                  {ocrResult?.ocrSuccess === false
+                    ? 'Manual Review Mode: OCR Service Notice'
+                    : 'Document Extracted Successfully'}
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Confidence Score: <span className="font-mono font-semibold text-emerald-700">{(ocrResult?.confidence * 100).toFixed(0)}%</span> • Verify extracted values before submitting for manager approval.
+                  {ocrResult?.ocrSuccess === false
+                    ? ocrResult.message || 'Automated OCR service connection was unavailable. Please enter details manually.'
+                    : `Confidence Score: ${(ocrResult?.confidence * 100).toFixed(0)}% • Verify extracted values before submitting for manager approval.`}
                 </p>
               </div>
             </div>
