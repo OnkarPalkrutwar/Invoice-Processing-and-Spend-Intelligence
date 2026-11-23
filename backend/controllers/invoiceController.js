@@ -13,6 +13,7 @@ const duplicateDetectionService = require('../services/duplicateDetectionService
 const notificationService = require('../services/notificationService');
 const paymentService = require('../services/paymentService');
 const { roundToTwo } = require('../utils/currencyUtils');
+const { parseSafeDate } = require('../utils/dateUtils');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/response');
 
 class InvoiceController {
@@ -212,8 +213,8 @@ class InvoiceController {
         vendorId: resolvedVendorId,
         vendorName: vendorName.trim(),
         invoiceNumber: invoiceNumber.trim().toUpperCase(),
-        invoiceDate: new Date(invoiceDate),
-        dueDate: new Date(dueDate),
+        invoiceDate: parseSafeDate(invoiceDate, new Date()),
+        dueDate: parseSafeDate(dueDate, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
         category,
         poNumber: poNumber || '',
         subtotal: roundToTwo(Number(subtotal)),
@@ -319,8 +320,8 @@ class InvoiceController {
 
       if (invoiceNumber) invoice.invoiceNumber = invoiceNumber.trim().toUpperCase();
       if (vendorName) invoice.vendorName = vendorName.trim();
-      if (invoiceDate) invoice.invoiceDate = new Date(invoiceDate);
-      if (dueDate) invoice.dueDate = new Date(dueDate);
+      if (invoiceDate) invoice.invoiceDate = parseSafeDate(invoiceDate, invoice.invoiceDate);
+      if (dueDate) invoice.dueDate = parseSafeDate(dueDate, invoice.dueDate);
       if (category) invoice.category = category;
       if (poNumber !== undefined) invoice.poNumber = poNumber;
       if (subtotal !== undefined) invoice.subtotal = roundToTwo(Number(subtotal));
@@ -457,10 +458,9 @@ class InvoiceController {
       const ocrData = ocrResult.data || {};
       const vendorName = ocrData.vendorName || path.parse(file.originalname).name || 'Unknown Vendor';
       const invoiceNumber = ocrData.invoiceNumber || `INV-${Date.now().toString().slice(-6)}`;
-      const invoiceDate = ocrData.invoiceDate ? new Date(ocrData.invoiceDate) : new Date();
-      const dueDate = ocrData.dueDate
-        ? new Date(ocrData.dueDate)
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // +30 days default
+      const invoiceDate = parseSafeDate(ocrData.invoiceDate, new Date());
+      const defaultDueDate = new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const dueDate = parseSafeDate(ocrData.dueDate, defaultDueDate);
 
       const subtotal = roundToTwo(Number(ocrData.subtotal) || 0);
       const taxAmount = roundToTwo(Number(ocrData.taxAmount) || 0);
