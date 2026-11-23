@@ -12,6 +12,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Command,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationService } from '../../services/notificationService';
@@ -117,8 +119,20 @@ export const Navbar = ({ isSidebarCollapsed, toggleSidebar }) => {
         isSidebarCollapsed ? 'left-[72px]' : 'left-64'
       }`}
     >
-      {/* Left: Breadcrumbs / Title Context */}
+      {/* Left: Sidebar Toggle & Breadcrumbs */}
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="p-1.5 -ml-1 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer mr-1"
+          title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen className="w-4 h-4 text-slate-700" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4 text-slate-500" />
+          )}
+        </button>
         <span className="text-xs font-medium text-slate-400 hidden sm:inline">Workspace</span>
         <ChevronRight className="w-3.5 h-3.5 text-slate-300 hidden sm:inline" />
         <span className="text-sm font-semibold text-slate-900 tracking-tight">{getPageTitle()}</span>

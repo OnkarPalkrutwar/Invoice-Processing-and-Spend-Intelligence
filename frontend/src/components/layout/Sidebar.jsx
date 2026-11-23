@@ -106,39 +106,48 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }) => {
     >
       {/* Top Organization Header */}
       <div>
-        <div className="h-16 flex items-center justify-between px-4 border-b border-[#1e2330]">
+        <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#1e2330]">
           {!isCollapsed ? (
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                AI
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-white tracking-tight truncate">
-                    Apex Innovations
-                  </span>
-                  <span className="px-1.5 py-0.2 text-[9px] font-semibold bg-zinc-800 text-zinc-400 rounded border border-zinc-700/60 uppercase tracking-wider">
-                    PRO
-                  </span>
+            <>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                  AI
                 </div>
-                <p className="text-[11px] text-zinc-400 truncate">Finance Workspace</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-white tracking-tight truncate">
+                      Apex Innovations
+                    </span>
+                    <span className="px-1.5 py-0.2 text-[9px] font-semibold bg-zinc-800 text-zinc-400 rounded border border-zinc-700/60 uppercase tracking-wider">
+                      PRO
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 truncate">Finance Workspace</p>
+                </div>
               </div>
-            </div>
+
+              <button
+                type="button"
+                onClick={toggleCollapse}
+                className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors cursor-pointer"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
           ) : (
-            <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-semibold text-sm mx-auto">
-              AI
+            <div className="w-full flex items-center justify-center">
+              <button
+                type="button"
+                onClick={toggleCollapse}
+                className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-700 hover:border-zinc-500 transition-all cursor-pointer group relative shadow-xs"
+                title="Expand sidebar"
+              >
+                <span className="group-hover:hidden text-white font-semibold text-xs">AI</span>
+                <ChevronRight className="w-4 h-4 text-white hidden group-hover:block transition-transform group-hover:translate-x-0.5" />
+              </button>
             </div>
           )}
-
-          <button
-            onClick={toggleCollapse}
-            className={`p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors ${
-              isCollapsed ? 'hidden' : 'block'
-            }`}
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
         </div>
 
         {/* Navigation Sections */}
@@ -218,13 +227,25 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }) => {
           {!isCollapsed && (
             <button
               onClick={logout}
-              className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-md hover:bg-zinc-800/80 transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-md hover:bg-zinc-800/80 transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
+
+        {/* Dedicated Expand Button when Collapsed */}
+        {isCollapsed && (
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="w-full mt-2 py-1.5 flex items-center justify-center rounded-lg bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-400 hover:text-white transition-all cursor-pointer shadow-xs"
+            title="Expand sidebar"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
     </aside>
   );
