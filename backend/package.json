@@ -2,12 +2,12 @@
   "name": "invoice-spend-intelligence-backend",
   "version": "1.0.0",
   "description": "Backend API for Invoice Processing and Spend Intelligence Workspace",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "seed": "node src/utils/seed.js",
-    "test": "node --test"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node utils/seed.js",
+    "test": "node --test tests/integration.test.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

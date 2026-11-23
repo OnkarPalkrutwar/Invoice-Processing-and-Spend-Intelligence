@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Full-stack enterprise application for automated invoice processing, OCR extraction, vendor management, approval workflows, and spend intelligence.",
   "scripts": {
-    "start": "node backend/src/server.js",
+    "start": "node backend/server.js",
     "seed": "npm --prefix backend run seed",
     "backend": "npm --prefix backend run dev",
     "frontend": "npm --prefix frontend run dev",

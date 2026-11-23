@@ -58,7 +58,7 @@ test('2. Dashboard: Summary KPIs and monthly spending metrics', async () => {
 });
 
 test('3. Invoice OCR Upload: Upload real PDF through Multer to Python OCR service', async () => {
-  const filePath = path.resolve(__dirname, '../../uploads/sample_aws_invoice.pdf');
+  const filePath = path.resolve(__dirname, '../uploads/sample_aws_invoice.pdf');
   assert.ok(fs.existsSync(filePath), 'Sample PDF must exist');
 
   const form = new FormData();
@@ -84,7 +84,7 @@ test('3. Invoice OCR Upload: Upload real PDF through Multer to Python OCR servic
 });
 
 test('4. Duplicate Detection: Uploading duplicate invoice triggers warning', async () => {
-  const filePath = path.resolve(__dirname, '../../uploads/sample_aws_invoice.pdf');
+  const filePath = path.resolve(__dirname, '../uploads/sample_aws_invoice.pdf');
   const form = new FormData();
   form.append('file', fs.createReadStream(filePath));
 

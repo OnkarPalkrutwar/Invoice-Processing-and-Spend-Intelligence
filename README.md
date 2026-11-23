@@ -62,37 +62,41 @@ graph TD
 ```text
 Invoice Processing and Spend Intelligence/
 ├── package.json               # Root orchestrator scripts
+├── ARCHITECTURE.md            # Detailed architecture and layer documentation
 ├── backend/                   # Node.js Express Backend
 │   ├── .env                   # Environment configuration
 │   ├── package.json
-│   ├── uploads/               # Secure document storage
-│   └── src/
-│       ├── app.js             # Express app setup & security middleware
-│       ├── server.js          # Server bootstrap & DB connection
-│       ├── config/            # database.js, env.js, cors.js
-│       ├── controllers/       # auth, dashboard, invoice, vendor, approval, payment, analytics, report
-│       ├── models/            # Company, User, Vendor, Invoice, InvoiceLineItem, Approval, Payment, Notification, AuditLog
-│       ├── middleware/        # auth, role, upload, error, validation
-│       ├── services/          # ocrService, validationService, duplicateDetectionService, paymentService, analyticsService, reportService
-│       ├── routes/            # REST API route definitions
-│       ├── utils/             # seed.js, currencyUtils.js, dateUtils.js
-│       └── tests/             # integration.test.js
+│   ├── server.js              # Server bootstrap & DB connection
+│   ├── app.js                 # Express app setup & security middleware
+│   ├── routes/                # REST API route definitions (auth, invoices, approvals, etc.)
+│   ├── controllers/           # HTTP Request handlers & response formatting
+│   ├── services/              # Pure business logic & microservice integrations
+│   ├── models/                # Company, User, Vendor, Invoice, Approval, Payment, AuditLog
+│   ├── middleware/            # Auth, role, upload, error, validation
+│   ├── config/                # Database, env, cors
+│   ├── utils/                 # Seed.js, currencyUtils.js, dateUtils.js
+│   ├── validators/            # Request validation schemas
+│   ├── tests/                 # Integration test suites
+│   └── uploads/               # Secure document storage
 ├── frontend/                  # React 18 + Vite Frontend
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
 │   └── src/
 │       ├── main.jsx           # React DOM root & AuthProvider
-│       ├── App.jsx            # Protected routes & navigation
+│       ├── App.jsx            # Clean root application shell
 │       ├── index.css          # Design tokens & enterprise styling
-│       ├── context/           # AuthContext.jsx
-│       ├── services/          # api.js, authService, invoiceService, vendorService, analyticsService, reportService
-│       ├── pages/             # Login, Register, Dashboard, InvoiceList, InvoiceUpload, InvoiceDetails, InvoiceEdit, Approvals, Vendors, VendorDetails, SpendAnalytics, Reports, Notifications, Settings
-│       └── components/        # layout, dashboard, common, invoices, vendors
+│       ├── routes/            # AppRoutes.jsx, ProtectedRoute.jsx, PublicRoute.jsx
+│       ├── components/        # Layout, dashboard, common UI components
+│       ├── pages/             # Login, Dashboard, Invoices, Approvals, SpendAnalytics, etc.
+│       ├── services/          # Frontend API client modules (api.js, invoiceService, etc.)
+│       ├── context/           # AuthContext.jsx session provider
+│       └── utils/             # Formatters & currency utilities
 └── ocr-service/               # Python FastAPI OCR Microservice
     ├── requirements.txt
     ├── main.py                # FastAPI HTTP application (Port 8000)
-    └── extractor.py           # PyMuPDF & Tesseract invoice parsing engine
+    ├── routes/                # ocr_routes.py (FastAPI endpoints)
+    └── services/              # extractor_service.py (PyMuPDF & Tesseract parsing engine)
 ```
 
 ---
