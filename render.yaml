@@ -35,6 +35,6 @@ services:
         fromService:
           type: web
           name: invoscan-ocr
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
       - key: FRONTEND_URL
         sync: false
