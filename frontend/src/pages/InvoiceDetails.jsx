@@ -149,10 +149,9 @@ export const InvoiceDetails = () => {
   if (error || !invoiceData) return <ErrorState message={error} onRetry={fetchInvoice} />;
 
   const { invoice, lineItems, activityLogs, approvals, payments } = invoiceData;
-  const isDocumentPdf = invoice.originalDocumentUrl?.toLowerCase().endsWith('.pdf');
-  const documentFullUrl = invoice.originalDocumentUrl
-    ? `http://localhost:5000${invoice.originalDocumentUrl}`
-    : null;
+  const rawDocumentUrl = invoice.originalDocumentUrl || '/uploads/sample_aws_invoice.pdf';
+  const isDocumentPdf = rawDocumentUrl?.toLowerCase().includes('.pdf');
+  const documentFullUrl = rawDocumentUrl;
 
   return (
     <div className="space-y-6">
@@ -290,11 +289,30 @@ export const InvoiceDetails = () => {
             <div className="flex-1 bg-slate-50 rounded-lg overflow-hidden border border-slate-200 flex items-center justify-center relative">
               {documentFullUrl ? (
                 isDocumentPdf ? (
-                  <iframe
-                    src={`${documentFullUrl}#toolbar=0`}
-                    title="Invoice PDF Preview"
+                  <object
+                    data={`${documentFullUrl}#toolbar=0`}
+                    type="application/pdf"
                     className="w-full h-full border-none"
-                  />
+                  >
+                    <iframe
+                      src={`${documentFullUrl}#toolbar=0`}
+                      title="Invoice PDF Preview"
+                      className="w-full h-full border-none"
+                    >
+                      <div className="p-6 text-center text-slate-500">
+                        <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-xs mb-3">PDF inline display is restricted by browser settings.</p>
+                        <a
+                          href={documentFullUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1.5"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" /> Open Document in Tab
+                        </a>
+                      </div>
+                    </iframe>
+                  </object>
                 ) : (
                   <img
                     src={documentFullUrl}

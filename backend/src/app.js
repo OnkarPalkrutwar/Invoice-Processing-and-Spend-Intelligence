@@ -21,10 +21,12 @@ const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
-// Security headers with resource policy allowing cross-origin viewing for PDFs and uploads
+// Security headers allowing iframe embedding from the frontend and cross-origin resource policy
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    frameguard: false,
+    contentSecurityPolicy: false,
   })
 );
 
@@ -40,8 +42,27 @@ if (env.nodeEnv !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Serve uploaded documents statically
-app.use('/uploads', express.static(env.uploadDir));
+// Serve uploaded documents statically with permissive frame and embedding headers
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  },
+  express.static(env.uploadDir, {
+    setHeaders: (res, filePath) => {
+      res.removeHeader('X-Frame-Options');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      if (filePath.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+      }
+    },
+  })
+);
 
 // Rate limit on sensitive auth endpoints
 const authLimiter = rateLimit({

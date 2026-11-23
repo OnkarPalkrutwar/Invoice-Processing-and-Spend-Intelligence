@@ -274,6 +274,8 @@ const seedData = async () => {
         rejectionReason: item.rejectionReason || '',
         ocrConfidence: 0.94,
         notes: `Enterprise procurement for ${item.cat}`,
+        originalDocumentUrl: '/uploads/sample_aws_invoice.pdf',
+        originalDocumentName: 'sample_aws_invoice.pdf',
       });
 
       // Line item
