@@ -10,7 +10,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 8000
+        value: 10000
 
   # 2. InvoScan Node.js Express Backend API
   - type: web

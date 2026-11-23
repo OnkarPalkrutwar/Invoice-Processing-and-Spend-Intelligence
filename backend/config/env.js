@@ -13,7 +13,7 @@ const formatOcrUrl = (url) => {
     const urlObj = new URL(formatted);
     // If it's an internal Render hostname without a port and without a dot (e.g. http://invoscan-ocr)
     if (!urlObj.port && !urlObj.hostname.includes('.')) {
-      urlObj.port = '8000';
+      urlObj.port = '10000';
       return urlObj.toString().replace(/\/+$/, '');
     }
   } catch (e) {}
