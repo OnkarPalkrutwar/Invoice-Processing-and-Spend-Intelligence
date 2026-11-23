@@ -43,6 +43,18 @@ export const InvoiceEdit = () => {
         const res = await invoiceService.getInvoiceById(id);
         if (res.success && res.data) {
           const inv = res.data.invoice;
+          const invSubtotal = Number(inv.subtotal) || 0;
+          let invTaxRate = inv.taxPercentage !== undefined && inv.taxPercentage !== null ? Number(inv.taxPercentage) : 0;
+          let invTaxAmount = Number(inv.taxAmount) || 0;
+          let invTotal = Number(inv.totalAmount) || (invSubtotal + invTaxAmount);
+
+          if (invTaxAmount === 0 && (invTotal === invSubtotal || invSubtotal > 0)) {
+            invTaxRate = 0;
+          } else if (invTaxRate > 0 && invTaxAmount === 0 && invSubtotal > 0) {
+            invTaxAmount = Math.round(((invSubtotal * invTaxRate) / 100) * 100) / 100;
+            invTotal = Math.round((invSubtotal + invTaxAmount) * 100) / 100;
+          }
+
           setFormData({
             invoiceNumber: inv.invoiceNumber || '',
             vendorName: inv.vendorName || '',
@@ -50,14 +62,14 @@ export const InvoiceEdit = () => {
             dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split('T')[0] : '',
             category: inv.category || 'Services',
             poNumber: inv.poNumber || '',
-            subtotal: inv.subtotal || 0,
-            taxPercentage: inv.taxPercentage || 18,
-            taxAmount: inv.taxAmount || 0,
-            cgst: inv.cgst || 0,
-            sgst: inv.sgst || 0,
+            subtotal: invSubtotal,
+            taxPercentage: invTaxRate,
+            taxAmount: invTaxAmount,
+            cgst: inv.cgst || (invTaxAmount > 0 ? Math.round((invTaxAmount / 2) * 100) / 100 : 0),
+            sgst: inv.sgst || (invTaxAmount > 0 ? Math.round((invTaxAmount / 2) * 100) / 100 : 0),
             igst: inv.igst || 0,
             discount: inv.discount || 0,
-            totalAmount: inv.totalAmount || 0,
+            totalAmount: invTotal,
             approvalStatus: inv.approvalStatus || 'PENDING_APPROVAL',
             paymentStatus: inv.paymentStatus || 'UNPAID',
             notes: inv.notes || '',
@@ -97,6 +109,22 @@ export const InvoiceEdit = () => {
       const qty = parseFloat(newItems[index].quantity) || 0;
       const price = parseFloat(newItems[index].unitPrice) || 0;
       newItems[index].total = Math.round(qty * price * 100) / 100;
+
+      const newSubtotal = newItems.reduce((acc, item) => acc + (parseFloat(item.total) || 0), 0);
+      const roundedSubtotal = Math.round(newSubtotal * 100) / 100;
+      const rate = parseFloat(formData.taxPercentage) || 0;
+      const disc = parseFloat(formData.discount) || 0;
+      const tax = Math.round(((roundedSubtotal * rate) / 100) * 100) / 100;
+      const total = Math.round((roundedSubtotal + tax - disc) * 100) / 100;
+
+      setFormData((prev) => ({
+        ...prev,
+        subtotal: roundedSubtotal,
+        taxAmount: tax,
+        cgst: Math.round((tax / 2) * 100) / 100,
+        sgst: Math.round((tax / 2) * 100) / 100,
+        totalAmount: total,
+      }));
     }
     setLineItems(newItems);
   };
@@ -109,7 +137,24 @@ export const InvoiceEdit = () => {
   };
 
   const removeLineItem = (index) => {
-    setLineItems(lineItems.filter((_, i) => i !== index));
+    if (lineItems.length <= 1) return;
+    const newItems = lineItems.filter((_, i) => i !== index);
+    const newSubtotal = newItems.reduce((acc, item) => acc + (parseFloat(item.total) || 0), 0);
+    const roundedSubtotal = Math.round(newSubtotal * 100) / 100;
+    const rate = parseFloat(formData.taxPercentage) || 0;
+    const disc = parseFloat(formData.discount) || 0;
+    const tax = Math.round(((roundedSubtotal * rate) / 100) * 100) / 100;
+    const total = Math.round((roundedSubtotal + tax - disc) * 100) / 100;
+
+    setFormData((prev) => ({
+      ...prev,
+      subtotal: roundedSubtotal,
+      taxAmount: tax,
+      cgst: Math.round((tax / 2) * 100) / 100,
+      sgst: Math.round((tax / 2) * 100) / 100,
+      totalAmount: total,
+    }));
+    setLineItems(newItems);
   };
 
   const handleSubmit = async (e) => {

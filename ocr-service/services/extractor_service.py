@@ -110,7 +110,7 @@ class InvoiceExtractor:
             "poNumber": "",
             "subtotal": 0.0,
             "discount": 0.0,
-            "taxPercentage": 18.0,
+            "taxPercentage": 0.0,
             "taxAmount": 0.0,
             "cgst": 0.0,
             "sgst": 0.0,
@@ -284,6 +284,12 @@ class InvoiceExtractor:
             data["subtotal"] = data["totalAmount"]
         elif data["totalAmount"] == 0 and data["subtotal"] > 0:
             data["totalAmount"] = round(data["subtotal"] + data["taxAmount"], 2)
+
+        # Harmonize tax percentage with tax amount
+        if data["taxAmount"] > 0 and data["subtotal"] > 0:
+            data["taxPercentage"] = round((data["taxAmount"] / data["subtotal"]) * 100, 1)
+        elif data["taxAmount"] == 0:
+            data["taxPercentage"] = 0.0
 
         # 7. Vendor / Organization Name
         org_patterns = [

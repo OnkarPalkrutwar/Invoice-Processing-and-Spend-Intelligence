@@ -463,8 +463,21 @@ class InvoiceController {
       const dueDate = parseSafeDate(ocrData.dueDate, defaultDueDate);
 
       const subtotal = roundToTwo(Number(ocrData.subtotal) || 0);
-      const taxAmount = roundToTwo(Number(ocrData.taxAmount) || 0);
-      const totalAmount = roundToTwo(Number(ocrData.totalAmount) || (subtotal + taxAmount) || 0);
+      let taxAmount = roundToTwo(Number(ocrData.taxAmount) || 0);
+      let taxPercentage = roundToTwo(
+        ocrData.taxPercentage !== undefined && ocrData.taxPercentage !== null
+          ? Number(ocrData.taxPercentage)
+          : (taxAmount > 0 && subtotal > 0 ? (taxAmount / subtotal) * 100 : 0)
+      );
+      let totalAmount = roundToTwo(Number(ocrData.totalAmount) || (subtotal + taxAmount) || 0);
+
+      // Reconcile amounts: if taxAmount was 0 but total reflects tax
+      if (taxAmount === 0 && taxPercentage > 0 && subtotal > 0 && totalAmount > subtotal) {
+        taxAmount = roundToTwo(totalAmount - subtotal);
+      } else if (taxAmount === 0 && totalAmount === subtotal) {
+        taxPercentage = 0;
+      }
+
       const cgst = roundToTwo(Number(ocrData.cgst) || (taxAmount > 0 ? taxAmount / 2 : 0));
       const sgst = roundToTwo(Number(ocrData.sgst) || (taxAmount > 0 ? taxAmount / 2 : 0));
       const igst = roundToTwo(Number(ocrData.igst) || 0);
@@ -522,7 +535,7 @@ class InvoiceController {
         poNumber: ocrData.poNumber || '',
         subtotal,
         discount: roundToTwo(Number(ocrData.discount) || 0),
-        taxPercentage: roundToTwo(Number(ocrData.taxPercentage) || 18),
+        taxPercentage: roundToTwo(taxPercentage),
         taxAmount,
         cgst,
         sgst,
