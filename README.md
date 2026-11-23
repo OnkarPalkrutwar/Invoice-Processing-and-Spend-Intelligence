@@ -62,8 +62,6 @@ graph TD
 ```text
 Invoice Processing and Spend Intelligence/
 ├── package.json               # Root orchestrator scripts
-├── start-all.bat              # One-click Windows batch startup script
-├── start-all.ps1              # One-click Windows PowerShell startup script
 ├── backend/                   # Node.js Express Backend
 │   ├── .env                   # Environment configuration
 │   ├── package.json
@@ -132,11 +130,8 @@ python -m venv venv
 ```
 
 ### Step 3: Run the Services
-You can run all three services using the included convenient launcher scripts:
-- **Batch script**: Double-click `start-all.bat` or run `.\start-all.bat`
-- **PowerShell script**: Run `.\start-all.ps1`
 
-Or launch them in separate terminal windows:
+Launch each service in separate terminal windows:
 ```powershell
 # Terminal 1: Python OCR Microservice (Port 8000)
 cd ocr-service
