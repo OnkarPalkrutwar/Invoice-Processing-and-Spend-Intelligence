@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+// Dynamically resolve base URL: uses VITE_API_URL in cloud deployments (e.g. Vercel -> Render)
+// or defaults to local Vite proxy '/api' during local development
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

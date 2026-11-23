@@ -1,0 +1,40 @@
+services:
+  # 1. InvoScan Python OCR & Invoice Parser Service (Docker with Tesseract)
+  - type: web
+    name: invoscan-ocr
+    runtime: docker
+    rootDir: ocr-service
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+
+  # 2. InvoScan Node.js Express Backend API
+  - type: web
+    name: invoscan-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OCR_SERVICE_URL
+        fromService:
+          type: web
+          name: invoscan-ocr
+          property: host
+      - key: FRONTEND_URL
+        sync: false

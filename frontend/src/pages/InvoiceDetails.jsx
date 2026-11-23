@@ -151,7 +151,10 @@ export const InvoiceDetails = () => {
   const { invoice, lineItems, activityLogs, approvals, payments } = invoiceData;
   const rawDocumentUrl = invoice.originalDocumentUrl || '/uploads/sample_aws_invoice.pdf';
   const isDocumentPdf = rawDocumentUrl?.toLowerCase().includes('.pdf');
-  const documentFullUrl = rawDocumentUrl;
+  const backendBase = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+  const documentFullUrl = rawDocumentUrl && rawDocumentUrl.startsWith('/') && backendBase
+    ? `${backendBase}${rawDocumentUrl}`
+    : rawDocumentUrl;
 
   return (
     <div className="space-y-6">

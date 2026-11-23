@@ -4,15 +4,26 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5000',
-  'http://127.0.0.1:5000'
+  'http://127.0.0.1:5000',
 ];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
+}
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Allow server-to-server or no-origin requests, explicit whitelisted origins,
+    // and any Vercel or Render deployment preview/production subdomains
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      /\.vercel\.app$/.test(origin) ||
+      /\.onrender\.com$/.test(origin)
+    ) {
       callback(null, true);
     } else {
-      callback(new Error('Blocked by CORS policy'));
+      callback(new Error(`Blocked by CORS policy: ${origin}`));
     }
   },
   credentials: true,
@@ -21,3 +32,4 @@ const corsOptions = {
 };
 
 module.exports = cors(corsOptions);
+
