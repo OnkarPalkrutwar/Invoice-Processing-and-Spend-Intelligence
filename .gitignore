@@ -8,5 +8,6 @@ backend/uploads/*
 !backend/uploads/sample_aws_invoice.pdf
 uploads/*
 !uploads/sample_aws_invoice.pdf
+local-mongodb-data/
 .DS_Store
 *.log

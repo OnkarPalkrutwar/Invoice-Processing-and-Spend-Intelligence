@@ -8,6 +8,11 @@ import {
   AlertCircle,
   IndianRupee,
   ShieldCheck,
+  Users,
+  UserPlus,
+  Trash2,
+  Shield,
+  X,
 } from 'lucide-react';
 import api from '../services/api';
 import { authService } from '../services/authService';
@@ -45,6 +50,19 @@ export const Settings = () => {
     currentPassword: '',
     newPassword: '',
     confirmNewPassword: '',
+  });
+
+  // Team Members (Admin Only)
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loadingTeam, setLoadingTeam] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
+  const [addMemberError, setAddMemberError] = useState('');
+  const [addMemberForm, setAddMemberForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'EMPLOYEE',
   });
 
   useEffect(() => {
@@ -145,6 +163,62 @@ export const Settings = () => {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    if (!hasRole('ADMIN')) return;
+    setLoadingTeam(true);
+    try {
+      const res = await api.get('/settings/users');
+      if (res.data?.success) {
+        setTeamMembers(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingTeam(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'team') {
+      fetchTeamMembers();
+    }
+  }, [activeTab]);
+
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    setAddingMember(true);
+    setAddMemberError('');
+
+    try {
+      const res = await api.post('/settings/users', addMemberForm);
+      if (res.data?.success) {
+        setSuccessMsg(res.data.message || 'Team member added successfully.');
+        setShowAddModal(false);
+        setAddMemberForm({ name: '', email: '', password: '', role: 'EMPLOYEE' });
+        fetchTeamMembers();
+      }
+    } catch (err) {
+      setAddMemberError(err.response?.data?.message || 'Failed to add team member.');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const handleDeleteMember = async (id, memberName) => {
+    if (!window.confirm(`Are you sure you want to remove ${memberName} from this organization?`)) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/settings/users/${id}`);
+      if (res.data?.success) {
+        setSuccessMsg('Team member removed successfully.');
+        fetchTeamMembers();
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete team member.');
+    }
+  };
+
   if (loading) return <LoadingSpinner label="Loading workspace configuration profile..." />;
 
   return (
@@ -187,6 +261,23 @@ export const Settings = () => {
         >
           <Building2 className="w-4 h-4" /> Legal Entity Profile
         </button>
+
+        {hasRole('ADMIN') && (
+          <button
+            onClick={() => {
+              setActiveTab('team');
+              setErrorMsg('');
+              setSuccessMsg('');
+            }}
+            className={`px-3 py-2 border-b-2 transition-all flex items-center gap-2 -mb-px ${
+              activeTab === 'team'
+                ? 'border-zinc-900 text-zinc-900 font-semibold'
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+            }`}
+          >
+            <Users className="w-4 h-4" /> Team & Roles
+          </button>
+        )}
 
         <button
           onClick={() => {
@@ -458,6 +549,231 @@ export const Settings = () => {
             </button>
           </div>
         </form>
+      )}
+
+      {/* Tab: Team & Roles (Admin Only) */}
+      {activeTab === 'team' && hasRole('ADMIN') && (
+        <div className="card space-y-4 p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                Organization Staff & Role Provisioning
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Add new Finance Managers and Employees to your organization with specific approval credentials.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setAddMemberError('');
+                setShowAddModal(true);
+              }}
+              className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Add Member</span>
+            </button>
+          </div>
+
+          {/* Members Table */}
+          {loadingTeam ? (
+            <LoadingSpinner label="Loading organization staff..." size="sm" />
+          ) : teamMembers.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              <p className="text-xs">No team members loaded. Click "Add Member" to create one.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="py-2.5 px-3">Team Member</th>
+                    <th className="py-2.5 px-3">Email Address</th>
+                    <th className="py-2.5 px-3">Assigned Role</th>
+                    <th className="py-2.5 px-3">Role Capabilities</th>
+                    <th className="py-2.5 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {teamMembers.map((m) => {
+                    const isSelf = m._id === user?.id || m._id === user?._id;
+                    return (
+                      <tr key={m._id} className="hover:bg-slate-50/50">
+                        <td className="py-2.5 px-3 font-medium text-slate-900 flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold">
+                            {m.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span>{m.name}</span>
+                          {isSelf && (
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+                              You
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600 font-mono text-[11px]">
+                          {m.email}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {m.role === 'ADMIN' && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                              <Shield className="w-3 h-3" /> Admin
+                            </span>
+                          )}
+                          {m.role === 'FINANCE_MANAGER' && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              <ShieldCheck className="w-3 h-3" /> Finance Manager
+                            </span>
+                          )}
+                          {m.role === 'EMPLOYEE' && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <User className="w-3 h-3" /> Employee
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                          {m.role === 'ADMIN' && 'Full system configuration, organization & user management'}
+                          {m.role === 'FINANCE_MANAGER' && 'Approves/rejects invoices, records payments & vendor reconciliation'}
+                          {m.role === 'EMPLOYEE' && 'Uploads & tracks departmental bills / expense invoices'}
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          {!isSelf && (
+                            <button
+                              onClick={() => handleDeleteMember(m._id, m.name)}
+                              className="text-slate-400 hover:text-rose-600 transition-colors p-1"
+                              title="Remove Member"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Add Member Modal */}
+          {showAddModal && (
+            <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-brand-600" />
+                    <h3 className="text-sm font-bold text-slate-900">Add Organization Member</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {addMemberError && (
+                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{addMemberError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleAddMember} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 uppercase mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rahul Sharma"
+                      value={addMemberForm.name}
+                      onChange={(e) =>
+                        setAddMemberForm({ ...addMemberForm, name: e.target.value })
+                      }
+                      className="input-field text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 uppercase mb-1">
+                      Work Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. rahul@company.com"
+                      value={addMemberForm.email}
+                      onChange={(e) =>
+                        setAddMemberForm({ ...addMemberForm, email: e.target.value })
+                      }
+                      className="input-field text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 uppercase mb-1">
+                      Initial Password * (min. 6 characters)
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      placeholder="Temporary password..."
+                      value={addMemberForm.password}
+                      onChange={(e) =>
+                        setAddMemberForm({ ...addMemberForm, password: e.target.value })
+                      }
+                      className="input-field text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 uppercase mb-1">
+                      Role & Permissions *
+                    </label>
+                    <select
+                      value={addMemberForm.role}
+                      onChange={(e) =>
+                        setAddMemberForm({ ...addMemberForm, role: e.target.value })
+                      }
+                      className="input-field text-xs"
+                    >
+                      <option value="EMPLOYEE">
+                        Employee (Upload & Personal Invoice Tracking)
+                      </option>
+                      <option value="FINANCE_MANAGER">
+                        Finance Manager (Verify, Approve/Reject & Record Settlements)
+                      </option>
+                      <option value="ADMIN">
+                        Administrator (Full System & User Control)
+                      </option>
+                    </select>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddModal(false)}
+                      className="btn-secondary text-xs py-1.5 px-3"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={addingMember}
+                      className="btn-primary text-xs py-1.5 px-4"
+                    >
+                      {addingMember ? 'Adding...' : 'Create Account'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

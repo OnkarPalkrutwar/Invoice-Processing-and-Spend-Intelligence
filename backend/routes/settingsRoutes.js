@@ -60,4 +60,85 @@ router.put('/profile', async (req, res, next) => {
   }
 });
 
+// Get all team members for current organization (ADMIN only)
+router.get('/users', authorize('ADMIN'), async (req, res, next) => {
+  try {
+    const users = await User.find({ companyId: req.companyId })
+      .select('-password')
+      .sort({ createdAt: -1 });
+    return successResponse(res, users, 'Team members retrieved.');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create new team member (ADMIN only)
+router.post('/users', authorize('ADMIN'), async (req, res, next) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password) {
+      return errorResponse(res, 'Full name, email, and password are required.', 400);
+    }
+
+    if (password.length < 6) {
+      return errorResponse(res, 'Password must be at least 6 characters long.', 400);
+    }
+
+    const validRoles = ['ADMIN', 'FINANCE_MANAGER', 'EMPLOYEE'];
+    const assignedRole = role && validRoles.includes(role) ? role : 'EMPLOYEE';
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return errorResponse(res, 'An account with this email address already exists.', 409);
+    }
+
+    const newUser = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password,
+      role: assignedRole,
+      companyId: req.companyId,
+    });
+
+    const userObj = newUser.toObject();
+    delete userObj.password;
+
+    const roleLabel =
+      assignedRole === 'FINANCE_MANAGER'
+        ? 'Finance Manager'
+        : assignedRole === 'ADMIN'
+        ? 'Administrator'
+        : 'Employee';
+
+    return successResponse(res, userObj, `${roleLabel} created successfully.`, 201);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete team member (ADMIN only)
+router.delete('/users/:id', authorize('ADMIN'), async (req, res, next) => {
+  try {
+    const userToDelete = await User.findOne({
+      _id: req.params.id,
+      companyId: req.companyId,
+    });
+
+    if (!userToDelete) {
+      return errorResponse(res, 'Team member not found in your organization.', 404);
+    }
+
+    if (userToDelete._id.toString() === req.user._id.toString()) {
+      return errorResponse(res, 'You cannot delete your own admin account.', 400);
+    }
+
+    await User.deleteOne({ _id: userToDelete._id });
+    return successResponse(res, null, 'Team member removed successfully.');
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
